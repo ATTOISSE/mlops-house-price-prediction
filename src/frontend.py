@@ -12,7 +12,7 @@ st.set_page_config(
 st.title("Prédiction de prix de maison")
 st.markdown("Estimez le prix d'une maison en utilisant différents modèles")
 
-API_URL = "http://localhost:8000"
+API_URL = "http://api:8000"
 
 @st.cache_data
 def get_feature_names():
