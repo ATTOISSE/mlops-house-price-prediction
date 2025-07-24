@@ -1,0 +1,62 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  mlops-pipeline:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install Python dependencies
+      run: pip install -r requirements.txt
+
+    - name: Data preprocessing
+      run: python src/preprocessing.py
+
+    - name: Train models
+      run: python src/train.py
+
+    - name: Test API (local)
+      run: |
+        python app.py &
+        sleep 10
+        curl http://localhost:8000/ || exit 1
+        pkill -f app.py
+
+    - name: Test Frontend (local)
+      run: |
+        python -c "import sys; sys.path.append('src'); import frontend; print('Frontend OK')"
+
+    - name: Set up Docker
+      uses: docker/setup-buildx-action@v3
+
+    - name: Install Docker Compose
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y docker-compose
+
+    - name: Build Docker images
+      run: docker-compose build
+
+    - name: Test Docker stack
+      run: |
+        docker-compose up -d
+        echo "Attente de l'API..."
+        for i in {1..10}; do
+          curl -s http://localhost:8000/health && break
+          sleep 5
+        done
+        curl http://localhost:8000/ || exit 1
+        curl http://localhost:8501/ || exit 1
+        docker-compose down
