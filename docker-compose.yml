@@ -14,11 +14,6 @@ services:
       - PYTHONPATH=/app
     networks:
       - mlops-network
-    healthcheck:
-      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/loggers')"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
 
   frontend:
     build:
@@ -27,9 +22,7 @@ services:
     ports:
       - "8501:8501"
     depends_on:
-      - api:
-          condition: service_healthy
-
+      - api
     environment:
       - API_URL=http://api:8000
     networks:
