@@ -1,6 +1,6 @@
 import streamlit as st
 import requests
-import os
+import json
 import pandas as pd
 import joblib
 
@@ -12,12 +12,12 @@ st.set_page_config(
 st.title("Prédiction de prix de maison")
 st.markdown("Estimez le prix d'une maison en utilisant différents modèles")
 
-API_URL = os.getenv("API_URL", "http://localhost:8000")
+API_URL = "http://api:8000"
 
 @st.cache_data
 def get_feature_names():
     try:
-        response = requests.get(f"{API_URL}/features", timeout=5)
+        response = requests.get(f"{API_URL}/features")
         if response.status_code == 200:
             return response.json()["features"]
         else:
@@ -31,7 +31,7 @@ def get_feature_names():
 @st.cache_data
 def get_available_models():
     try:
-        response = requests.get(f"{API_URL}/models", timeout=5)
+        response = requests.get(f"{API_URL}/models")
         if response.status_code == 200:
             return response.json()["models"]
         else:
@@ -110,8 +110,7 @@ with col2:
             with st.spinner("Chargement..."):
                 response = requests.post(
                     f"{API_URL}/predict",
-                    json=prediction_data,
-                    timeout=10
+                    json=prediction_data
                 )
 
             if response.status_code == 200:
@@ -133,7 +132,7 @@ with col2:
             st.error(f"Erreur : {str(e)}")
     
 try:
-    health_response = requests.get(f"{API_URL}/loggers", timeout=5)
+    health_response = requests.get(f"{API_URL}/loggers", timeout=2)
     if health_response.status_code == 200:
         st.sidebar.success("API connectée")
     else:
