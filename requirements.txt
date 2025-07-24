@@ -6,3 +6,5 @@ joblib
 pydantic
 fastapi
 uvicorn
+streamlit
+requests
